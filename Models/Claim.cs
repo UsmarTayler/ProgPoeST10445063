@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+//For Commit purposes
 namespace CMCS.Mvc.Models
 {
     public class Claim
