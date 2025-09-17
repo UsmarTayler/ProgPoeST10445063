@@ -1,0 +1,43 @@
+@model CMCS.Mvc.Models.Claim
+<h3>Submit Claim (Lecturer)</h3>
+<div class="alert alert-info">
+    This is a UI-only simulation. Clicking "Submit Claim" will <strong>not</strong> save data; a static message will be shown.
+</div>
+<form class="row g-3 mt-2" onsubmit="return false;">
+    <div class="col-md-6">
+        <label class="form-label">Lecturer Full Name</label>
+        <input asp-for="LecturerName" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Month</label>
+        <select asp-for="Month" class="form-select">
+            @foreach (var m in (List<string>)ViewBag.Months)
+            { <option value="@m">@m</option> }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Hourly Rate (R)</label>
+        <input asp-for="HourlyRate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Hours Worked</label>
+        <input asp-for="HoursWorked" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label class="form-label">Short Description</label>
+        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Supporting Doc 1 (name only)</label>
+        <input type="text" class="form-control" placeholder="Timesheet_May.pdf" />
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Supporting Doc 2 (optional)</label>
+        <input type="text" class="form-control" placeholder="Evidence_April.docx" />
+    </div>
+    <div class="col-12 d-flex justify-content-end">
+        <button type="button" class="btn btn-primary" onclick="alert('Submitted (simulation only). No data saved.');">
+            Submit Claim
+        </button>
+    </div>
+</form>
