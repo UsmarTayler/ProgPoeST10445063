@@ -1,5 +1,50 @@
 @model List<CMCS.Mvc.Models.Claim>
+
 <h3>Admin Review</h3>
+
+@if (TempData["msg"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["msg"]
+    </div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>LecturerId</th>
+            <th>Month</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.ClaimId</td>
+                <td>@c.LecturerId</td>
+                <td>@c.Month</td>
+                <td>@c.TotalAmount</td>
+                <td>@c.Status</td>
+                <td>@c.SubmissionDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <form asp-action="Approve" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@c.ClaimId" />
+                        <button class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form asp-action="Reject" method="post" class="d-inline ms-1">
+                        <input type="hidden" name="id" value="@c.ClaimId" />
+                        <button class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
 
 <table class="table table-striped table-hover">
     <thead class="table-dark">
