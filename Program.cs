@@ -1,12 +1,20 @@
-using CMCS.Mvc.Services;
+using CMCS.Mvc.Data;                 // <-- add
+using Microsoft.EntityFrameworkCore;  // <-- add
 
 var builder = WebApplication.CreateBuilder(args);
+
+// MVC
 builder.Services.AddControllersWithViews();
 
-// Dummy provider with seeded data (read-only for Part 1)
-builder.Services.AddSingleton<IDummyDataProvider, DummyDataProvider>();
+// EF Core DbContext (LocalDB)
+builder.Services.AddDbContext<CmcsContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("CMCS")));
+
+
 
 var app = builder.Build();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
