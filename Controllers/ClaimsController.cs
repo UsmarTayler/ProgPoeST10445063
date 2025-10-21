@@ -133,8 +133,11 @@ public class ClaimsController : Controller
     {
         var claim = await _db.Claims.FindAsync(id);
         if (claim == null) return NotFound();
+
         claim.Status = ClaimStatus.Approved;
         await _db.SaveChangesAsync();
+
+        TempData["msg"] = $"Claim #{id} has been successfully approved.";
         return RedirectToAction(nameof(Review));
     }
 
@@ -143,10 +146,14 @@ public class ClaimsController : Controller
     {
         var claim = await _db.Claims.FindAsync(id);
         if (claim == null) return NotFound();
+
         claim.Status = ClaimStatus.Rejected;
         await _db.SaveChangesAsync();
+
+        TempData["msg"] = $"Claim #{id} has been successfully rejected.";
         return RedirectToAction(nameof(Review));
     }
+
 
     private static List<string> Months() => new() {
         "January","February","March","April","May","June",
