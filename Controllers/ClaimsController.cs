@@ -39,16 +39,13 @@ public class ClaimsController : Controller
     // Submit Claim (GET)
     public IActionResult Create()
     {
-        // Populate dropdown for lecturer selection
         ViewBag.Lecturers = new SelectList(
             _db.Lecturers.AsNoTracking().ToList(),
             "LecturerId",
             "FullName"
         );
 
-        // Populate dropdown for months
         ViewBag.Months = Months();
-
         return View(new Claim());
     }
 
@@ -68,25 +65,21 @@ public class ClaimsController : Controller
 
         try
         {
-            // Save claim first so we have ClaimId for documents
             _db.Claims.Add(claim);
             await _db.SaveChangesAsync();
 
-            // Local helper to store a single file
             async Task SaveDocAsync(IFormFile? file)
             {
                 if (file == null || file.Length == 0) return;
 
                 var allowed = new[] { ".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg" };
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-
-                // 35 MB maximum
                 const long MaxBytes = 35L * 1024 * 1024;
 
                 if (!allowed.Contains(ext) || file.Length > MaxBytes)
                 {
                     TempData["error"] = "Invalid file. Allowed: PDF/DOCX/XLSX/PNG/JPG (max 35 MB).";
-                    return; // skip this file; still keep the claim
+                    return;
                 }
 
                 var folder = Path.Combine(_env.WebRootPath, "uploads");
@@ -101,15 +94,14 @@ public class ClaimsController : Controller
                 _db.SupportingDocuments.Add(new SupportingDocument
                 {
                     ClaimId = claim.ClaimId,
-                    FileName = file.FileName,          // original name
-                    FilePath = $"/uploads/{newName}",  // public path
+                    FileName = file.FileName,
+                    FilePath = $"/uploads/{newName}",
                     UploadedAt = DateTime.Now
                 });
 
                 await _db.SaveChangesAsync();
             }
 
-            // Save up to two docs (safe if null)
             await SaveDocAsync(upload1);
             await SaveDocAsync(upload2);
 
@@ -118,13 +110,23 @@ public class ClaimsController : Controller
         }
         catch (Exception)
         {
-            // Friendly message; keep the user on the form with their data
             TempData["error"] = "Something went wrong while saving your claim or file. Please try again.";
             ViewBag.Months = Months();
             return View(claim);
         }
     }
 
+    // ? Review Page (GET)
+    [HttpGet]
+    public async Task<IActionResult> Review()
+    {
+        var pending = await _db.Claims
+            .Where(c => c.Status == ClaimStatus.Pending)
+            .OrderByDescending(c => c.SubmissionDate)
+            .ToListAsync();
+
+        return View(pending);
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Approve(int id)
@@ -133,8 +135,7 @@ public class ClaimsController : Controller
         if (claim == null) return NotFound();
         claim.Status = ClaimStatus.Approved;
         await _db.SaveChangesAsync();
-        return RedirectToAction("Review");
-
+        return RedirectToAction(nameof(Review));
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -144,8 +145,7 @@ public class ClaimsController : Controller
         if (claim == null) return NotFound();
         claim.Status = ClaimStatus.Rejected;
         await _db.SaveChangesAsync();
-        return RedirectToAction("Review");
-
+        return RedirectToAction(nameof(Review));
     }
 
     private static List<string> Months() => new() {
