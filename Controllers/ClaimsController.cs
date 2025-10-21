@@ -1,6 +1,7 @@
 using CMCS.Mvc.Data;
 using CMCS.Mvc.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
@@ -38,7 +39,16 @@ public class ClaimsController : Controller
     // Submit Claim (GET)
     public IActionResult Create()
     {
+        // Populate dropdown for lecturer selection
+        ViewBag.Lecturers = new SelectList(
+            _db.Lecturers.AsNoTracking().ToList(),
+            "LecturerId",
+            "FullName"
+        );
+
+        // Populate dropdown for months
         ViewBag.Months = Months();
+
         return View(new Claim());
     }
 
@@ -56,52 +66,65 @@ public class ClaimsController : Controller
         claim.Status = ClaimStatus.Pending;
         claim.SubmissionDate = DateTime.Now;
 
-        _db.Claims.Add(claim);
-        await _db.SaveChangesAsync();
-
-        async Task SaveDoc(IFormFile? file)
+        try
         {
-            if (file == null || file.Length == 0) return;
+            // Save claim first so we have ClaimId for documents
+            _db.Claims.Add(claim);
+            await _db.SaveChangesAsync();
 
-            var allowed = new[] { ".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg" };
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowed.Contains(ext) || file.Length > 5 * 1024 * 1024)
+            // Local helper to store a single file
+            async Task SaveDocAsync(IFormFile? file)
             {
-                TempData["error"] = "Invalid file type or size (max 5 MB).";
-                return;
+                if (file == null || file.Length == 0) return;
+
+                var allowed = new[] { ".pdf", ".docx", ".xlsx", ".png", ".jpg", ".jpeg" };
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                // 35 MB maximum
+                const long MaxBytes = 35L * 1024 * 1024;
+
+                if (!allowed.Contains(ext) || file.Length > MaxBytes)
+                {
+                    TempData["error"] = "Invalid file. Allowed: PDF/DOCX/XLSX/PNG/JPG (max 35 MB).";
+                    return; // skip this file; still keep the claim
+                }
+
+                var folder = Path.Combine(_env.WebRootPath, "uploads");
+                Directory.CreateDirectory(folder);
+
+                var newName = $"{Guid.NewGuid()}{ext}";
+                var fullPath = Path.Combine(folder, newName);
+
+                using (var fs = System.IO.File.Create(fullPath))
+                    await file.CopyToAsync(fs);
+
+                _db.SupportingDocuments.Add(new SupportingDocument
+                {
+                    ClaimId = claim.ClaimId,
+                    FileName = file.FileName,          // original name
+                    FilePath = $"/uploads/{newName}",  // public path
+                    UploadedAt = DateTime.Now
+                });
+
+                await _db.SaveChangesAsync();
             }
 
-            var folder = Path.Combine(_env.WebRootPath, "uploads");
-            Directory.CreateDirectory(folder);
-            var newName = $"{Guid.NewGuid()}{ext}";
-            var path = Path.Combine(folder, newName);
-            using var fs = System.IO.File.Create(path);
-            await file.CopyToAsync(fs);
+            // Save up to two docs (safe if null)
+            await SaveDocAsync(upload1);
+            await SaveDocAsync(upload2);
 
-            _db.SupportingDocuments.Add(new SupportingDocument
-            {
-                ClaimId = claim.ClaimId,
-                FileName = file.FileName,
-                FilePath = $"/uploads/{newName}"
-            });
-            await _db.SaveChangesAsync();
+            TempData["msg"] = "Claim submitted successfully.";
+            return RedirectToAction(nameof(Index));
         }
-
-        await SaveDoc(upload1);
-        await SaveDoc(upload2);
-
-        TempData["msg"] = "Claim submitted successfully.";
-        return RedirectToAction(nameof(Index));
+        catch (Exception)
+        {
+            // Friendly message; keep the user on the form with their data
+            TempData["error"] = "Something went wrong while saving your claim or file. Please try again.";
+            ViewBag.Months = Months();
+            return View(claim);
+        }
     }
 
-    public async Task<IActionResult> Review()
-    {
-        var pending = await _db.Claims
-            .Where(c => c.Status == ClaimStatus.Pending)
-            .OrderByDescending(c => c.SubmissionDate)
-            .ToListAsync();
-        return View(pending);
-    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Approve(int id)
@@ -110,7 +133,8 @@ public class ClaimsController : Controller
         if (claim == null) return NotFound();
         claim.Status = ClaimStatus.Approved;
         await _db.SaveChangesAsync();
-        return RedirectToAction(nameof(Review));
+        return RedirectToAction("Review");
+
     }
 
     [HttpPost, ValidateAntiForgeryToken]
@@ -120,7 +144,8 @@ public class ClaimsController : Controller
         if (claim == null) return NotFound();
         claim.Status = ClaimStatus.Rejected;
         await _db.SaveChangesAsync();
-        return RedirectToAction(nameof(Review));
+        return RedirectToAction("Review");
+
     }
 
     private static List<string> Months() => new() {
