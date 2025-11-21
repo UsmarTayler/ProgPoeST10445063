@@ -1,0 +1,47 @@
+﻿@model IEnumerable<CMCS.Mvc.Models.Lecturer>
+
+
+@{
+    ViewData["Title"] = "Manage Lecturers";
+}
+
+<h2>Manage Lecturer Accounts</h2>
+<hr />
+
+<a asp-action="CreateLecturer" class="btn btn-primary mb-3">
+    ➕ Add New Lecturer
+</a>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Hourly Rate</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var l in Model)
+        {
+            <tr>
+                <td>@l.LecturerId</td>
+                <td>@l.FullName</td>
+                <td>@l.Email</td>
+                <td>@l.HourlyRate</td>
+
+                <td>
+                    <a asp-action="EditLecturer" asp-route-id="@l.LecturerId" class="btn btn-sm btn-warning">
+                        ✏ Edit
+                    </a>
+
+                    <a asp-action="DeleteLecturer" asp-route-id="@l.LecturerId" class="btn btn-sm btn-danger">
+                        🗑 Delete
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

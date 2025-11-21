@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Process Approved Claims";
+}
+
+<h2>Process Approved Claims</h2>
+<hr />
+
+<p>
+    This action will mark all <strong>Approved</strong> claims for the selected
+    month as <strong>Processed</strong>.
+</p>
+
+<form method="post">
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label>Select Month</label>
+            <select name="month" class="form-select">
+                @for (int m = 1; m <= 12; m++)
+                {
+                    <option value="@m">
+                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label>Select Year</label>
+            <input name="year" class="form-control" value="@DateTime.Now.Year" />
+        </div>
+    </div>
+
+    <button class="btn btn-success">
+        ✔ Mark Approved Claims as Processed
+    </button>
+
+</form>

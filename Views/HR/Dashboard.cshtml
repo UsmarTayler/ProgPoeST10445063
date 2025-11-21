@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "HR Dashboard";
+}
+
+<h2>HR Dashboard</h2>
+<hr />
+
+<div class="list-group">
+
+    <a class="list-group-item list-group-item-action"
+       asp-action="Summary">
+        📊 Monthly Claim Summary
+    </a>
+
+    <a class="list-group-item list-group-item-action"
+       asp-action="ProcessMonth">
+        ✔ Process Approved Claims
+    </a>
+
+    <a class="list-group-item list-group-item-action"
+       asp-action="ManageLecturers">
+        👨‍🏫 Manage Lecturer Accounts
+    </a>
+
+</div>
