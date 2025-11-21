@@ -1,11 +1,10 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace CMCS.Mvc.Models
 {
     public class Lecturer
     {
-        [Key] public int LecturerId { get; set; }
-        [Required, StringLength(100)] public string FullName { get; set; } = string.Empty;
-        [EmailAddress] public string? Email { get; set; }
+        public int LecturerId { get; set; }
+        public string FullName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public decimal HourlyRate { get; set; }
     }
 }
