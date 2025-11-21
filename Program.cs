@@ -1,17 +1,20 @@
-using CMCS.Mvc.Data;                 // <-- add
-using Microsoft.EntityFrameworkCore;  // <-- add
+﻿using CMCS.Mvc.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// MVC
 builder.Services.AddControllersWithViews();
 
-// EF Core DbContext (LocalDB)
 builder.Services.AddDbContext<CmcsContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("CMCS")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+// ✅ Sessions for login/roles
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -25,6 +28,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+// ✅ enable sessions
+app.UseSession();
+
+// default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Claims}/{action=Index}/{id?}");
