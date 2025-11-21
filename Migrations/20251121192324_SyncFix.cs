@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace CMCS.Mvc.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class SyncFix : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,15 +17,16 @@ namespace CMCS.Mvc.Migrations
                 name: "AdminUsers",
                 columns: table => new
                 {
-                    AdminUserId = table.Column<int>(type: "int", nullable: false)
+                    AdminId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    Role = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AdminUsers", x => x.AdminUserId);
+                    table.PrimaryKey("PK_AdminUsers", x => x.AdminId);
                 });
 
             migrationBuilder.CreateTable(
@@ -32,8 +35,9 @@ namespace CMCS.Mvc.Migrations
                 {
                     LecturerId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HourlyRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,12 +52,12 @@ namespace CMCS.Mvc.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     LecturerId = table.Column<int>(type: "int", nullable: false),
                     Month = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    HoursWorked = table.Column<double>(type: "float", nullable: false),
+                    HoursWorked = table.Column<int>(type: "int", nullable: false),
                     HourlyRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     SubmissionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LecturerId1 = table.Column<int>(type: "int", nullable: true)
+                    ApprovedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -64,11 +68,6 @@ namespace CMCS.Mvc.Migrations
                         principalTable: "Lecturers",
                         principalColumn: "LecturerId",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Claims_Lecturers_LecturerId1",
-                        column: x => x.LecturerId1,
-                        principalTable: "Lecturers",
-                        principalColumn: "LecturerId");
                 });
 
             migrationBuilder.CreateTable(
@@ -78,8 +77,8 @@ namespace CMCS.Mvc.Migrations
                     DocumentId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ClaimId = table.Column<int>(type: "int", nullable: false),
-                    FileName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    FilePath = table.Column<string>(type: "nvarchar(400)", maxLength: 400, nullable: true),
+                    FileName = table.Column<string>(type: "nvarchar(260)", maxLength: 260, nullable: false),
+                    FilePath = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UploadedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -93,15 +92,30 @@ namespace CMCS.Mvc.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "AdminUsers",
+                columns: new[] { "AdminId", "Email", "FullName", "PasswordHash", "Role" },
+                values: new object[,]
+                {
+                    { 1, "hr@college.edu", "HR User", "08FA299AECC0C034E037033E3B0BBFAEF26B78C742F16CF88AC3194502D6C394", "HR" },
+                    { 2, "coord@college.edu", "Coordinator User", "08FA299AECC0C034E037033E3B0BBFAEF26B78C742F16CF88AC3194502D6C394", "Coordinator" },
+                    { 3, "manager@college.edu", "Manager User", "08FA299AECC0C034E037033E3B0BBFAEF26B78C742F16CF88AC3194502D6C394", "Manager" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Lecturers",
+                columns: new[] { "LecturerId", "Email", "FullName", "HourlyRate" },
+                values: new object[,]
+                {
+                    { 1, "asmith@college.edu", "A. Smith", 550m },
+                    { 2, "bnaidoo@college.edu", "B. Naidoo", 480m },
+                    { 3, "cdlamini@college.edu", "C. Dlamini", 600m }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Claims_LecturerId",
                 table: "Claims",
                 column: "LecturerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Claims_LecturerId1",
-                table: "Claims",
-                column: "LecturerId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SupportingDocuments_ClaimId",

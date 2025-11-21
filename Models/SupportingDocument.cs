@@ -4,11 +4,19 @@ namespace CMCS.Mvc.Models
 {
     public class SupportingDocument
     {
-        [Key] public int DocumentId { get; set; }
-        [Required] public int ClaimId { get; set; }
+        [Key]
+        public int DocumentId { get; set; }
 
-        [Required, StringLength(255)] public string FileName { get; set; } = string.Empty;
-        [StringLength(400)] public string? FilePath { get; set; }   // e.g. /uploads/xxx.pdf
-        public DateTime UploadedAt { get; set; } = DateTime.Now;
+        [Required]
+        public int ClaimId { get; set; }
+        public Claim? Claim { get; set; }
+
+        [Required, MaxLength(260)]
+        public string FileName { get; set; } = "";
+
+        [Required]
+        public string FilePath { get; set; } = "";
+
+        public DateTime UploadedAt { get; set; }
     }
 }

@@ -24,28 +24,61 @@ namespace CMCS.Mvc.Migrations
 
             modelBuilder.Entity("CMCS.Mvc.Models.AdminUser", b =>
                 {
-                    b.Property<int>("AdminUserId")
+                    b.Property<int>("AdminId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdminUserId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdminId"));
 
                     b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.HasKey("AdminUserId");
+                    b.HasKey("AdminId");
 
                     b.ToTable("AdminUsers");
+
+                    b.HasData(
+                        new
+                        {
+                            AdminId = 1,
+                            Email = "hr@college.edu",
+                            FullName = "HR User",
+                            PasswordHash = "08FA299AECC0C034E037033E3B0BBFAEF26B78C742F16CF88AC3194502D6C394",
+                            Role = "HR"
+                        },
+                        new
+                        {
+                            AdminId = 2,
+                            Email = "coord@college.edu",
+                            FullName = "Coordinator User",
+                            PasswordHash = "08FA299AECC0C034E037033E3B0BBFAEF26B78C742F16CF88AC3194502D6C394",
+                            Role = "Coordinator"
+                        },
+                        new
+                        {
+                            AdminId = 3,
+                            Email = "manager@college.edu",
+                            FullName = "Manager User",
+                            PasswordHash = "08FA299AECC0C034E037033E3B0BBFAEF26B78C742F16CF88AC3194502D6C394",
+                            Role = "Manager"
+                        });
                 });
 
             modelBuilder.Entity("CMCS.Mvc.Models.Claim", b =>
@@ -56,19 +89,19 @@ namespace CMCS.Mvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClaimId"));
 
+                    b.Property<DateTime?>("ApprovedOn")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("HourlyRate")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<double>("HoursWorked")
-                        .HasColumnType("float");
-
-                    b.Property<int>("LecturerId")
+                    b.Property<int>("HoursWorked")
                         .HasColumnType("int");
 
-                    b.Property<int?>("LecturerId1")
+                    b.Property<int>("LecturerId")
                         .HasColumnType("int");
 
                     b.Property<string>("Month")
@@ -85,8 +118,6 @@ namespace CMCS.Mvc.Migrations
 
                     b.HasIndex("LecturerId");
 
-                    b.HasIndex("LecturerId1");
-
                     b.ToTable("Claims");
                 });
 
@@ -99,12 +130,15 @@ namespace CMCS.Mvc.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LecturerId"));
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("HourlyRate")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("LecturerId");
 
@@ -115,19 +149,22 @@ namespace CMCS.Mvc.Migrations
                         {
                             LecturerId = 1,
                             Email = "asmith@college.edu",
-                            FullName = "A. Smith"
+                            FullName = "A. Smith",
+                            HourlyRate = 550m
                         },
                         new
                         {
                             LecturerId = 2,
                             Email = "bnaidoo@college.edu",
-                            FullName = "B. Naidoo"
+                            FullName = "B. Naidoo",
+                            HourlyRate = 480m
                         },
                         new
                         {
                             LecturerId = 3,
                             Email = "cdlamini@college.edu",
-                            FullName = "C. Dlamini"
+                            FullName = "C. Dlamini",
+                            HourlyRate = 600m
                         });
                 });
 
@@ -144,12 +181,12 @@ namespace CMCS.Mvc.Migrations
 
                     b.Property<string>("FileName")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
 
                     b.Property<string>("FilePath")
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
@@ -163,26 +200,24 @@ namespace CMCS.Mvc.Migrations
 
             modelBuilder.Entity("CMCS.Mvc.Models.Claim", b =>
                 {
-                    b.HasOne("CMCS.Mvc.Models.Lecturer", null)
+                    b.HasOne("CMCS.Mvc.Models.Lecturer", "Lecturer")
                         .WithMany()
                         .HasForeignKey("LecturerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("CMCS.Mvc.Models.Lecturer", "Lecturer")
-                        .WithMany()
-                        .HasForeignKey("LecturerId1");
 
                     b.Navigation("Lecturer");
                 });
 
             modelBuilder.Entity("CMCS.Mvc.Models.SupportingDocument", b =>
                 {
-                    b.HasOne("CMCS.Mvc.Models.Claim", null)
+                    b.HasOne("CMCS.Mvc.Models.Claim", "Claim")
                         .WithMany("Documents")
                         .HasForeignKey("ClaimId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Claim");
                 });
 
             modelBuilder.Entity("CMCS.Mvc.Models.Claim", b =>

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CMCS.Mvc.Models
@@ -8,32 +8,39 @@ namespace CMCS.Mvc.Models
         [Key]
         public int ClaimId { get; set; }
 
-        
         [Required]
         public int LecturerId { get; set; }
+        public Lecturer? Lecturer { get; set; }
 
         [Required]
-        public string Month { get; set; } = string.Empty;
+        public string Month { get; set; } = "";
 
-        [Range(0.1, 1000)]
-        public double HoursWorked { get; set; }
+        [Range(1, 300)]
+        public int HoursWorked { get; set; }
 
-        [Range(0.1, 100000)]
+        [Range(50, 3000)]
         public decimal HourlyRate { get; set; }
+
+        [NotMapped]
+        public decimal TotalAmount => (HoursWorked * HourlyRate);
 
         public string? Description { get; set; }
 
-        [Required]
         public ClaimStatus Status { get; set; } = ClaimStatus.Pending;
+        public DateTime SubmissionDate { get; set; }
 
-        public DateTime SubmissionDate { get; set; } = DateTime.Now;
+        public DateTime? ApprovedOn { get; set; }
 
-        // Navigation property (not required but useful if you join Lecturer later)
-        public Lecturer? Lecturer { get; set; }
-
+        // ⭐ FIXED — navigation property required by EF
         public List<SupportingDocument> Documents { get; set; } = new();
-
-        [NotMapped]
-        public decimal TotalAmount => (decimal)HoursWorked * HourlyRate;
     }
+
+    public enum ClaimStatus
+    {
+        Pending = 0,
+        Approved = 1,
+        Rejected = 2,
+        Processed = 3
+    }
+
 }
