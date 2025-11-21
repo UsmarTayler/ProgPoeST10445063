@@ -1,0 +1,73 @@
+﻿@model CMCS.Mvc.Models.Claim
+@{
+    ViewData["Title"] = "Edit Claim";
+}
+
+<h2 class="mb-4">Edit Claim</h2>
+
+<form asp-action="Edit" enctype="multipart/form-data" method="post">
+    <input type="hidden" asp-for="ClaimId" />
+
+    <div class="row">
+
+        <!-- Lecturer (read-only on edit) -->
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Lecturer</label>
+            <input class="form-control" value="@Model.Lecturer?.FullName" readonly />
+        </div>
+
+        <!-- Month -->
+        <div class="col-md-6 mb-3">
+            <label asp-for="Month" class="form-label"></label>
+            <select asp-for="Month" class="form-select" asp-items="ViewBag.Months"></select>
+            <span asp-validation-for="Month" class="text-danger"></span>
+        </div>
+
+        <!-- Hours Worked -->
+        <div class="col-md-6 mb-3">
+            <label asp-for="HoursWorked" class="form-label"></label>
+            <input asp-for="HoursWorked" class="form-control" id="hoursInput" />
+            <span asp-validation-for="HoursWorked" class="text-danger"></span>
+        </div>
+
+        <!-- Hourly Rate (read-only) -->
+        <div class="col-md-6 mb-3">
+            <label asp-for="HourlyRate" class="form-label"></label>
+            <input asp-for="HourlyRate" class="form-control" id="rateInput" readonly />
+        </div>
+
+        <!-- Total Amount -->
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Total Amount</label>
+            <input id="totalInput" class="form-control" readonly />
+        </div>
+
+        <!-- Description -->
+        <div class="col-md-12 mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+        </div>
+
+    </div>
+
+    <button class="btn btn-primary mt-3">Save Changes</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function updateTotal() {
+            const hours = parseFloat(document.getElementById('hoursInput').value) || 0;
+            const rate = parseFloat(document.getElementById('rateInput').value) || 0;
+            const total = hours * rate;
+            document.getElementById('totalInput').value = total.toFixed(2);
+        }
+
+        document.getElementById('hoursInput').addEventListener('input', updateTotal);
+
+        // Initial load calculation
+        updateTotal();
+    </script>
+}

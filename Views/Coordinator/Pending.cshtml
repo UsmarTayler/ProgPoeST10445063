@@ -1,0 +1,41 @@
+﻿@model IEnumerable<CMCS.Mvc.Models.Claim>
+
+<h2>Pending Claims</h2>
+
+@if (!Model.Any())
+{
+    <p>No pending claims found.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Claim ID</th>
+                <th>Lecturer</th>
+                <th>Month</th>
+                <th>Hours Worked</th>
+                <th>Total Amount</th>
+                <th>Status</th>
+                <th>Review</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.ClaimId</td>
+                    <td>@c.LecturerId</td>
+                    <td>@c.Month</td>
+                    <td>@c.HoursWorked</td>
+                    <td>@((decimal)c.HoursWorked * c.HourlyRate)</td>
+                    <td>@c.Status</td>
+                    <td>
+                        <a asp-controller="Coordinator" asp-action="ReviewClaim" asp-route-id="@c.ClaimId"
+                           class="btn btn-primary">Review</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

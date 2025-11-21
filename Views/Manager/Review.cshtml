@@ -1,0 +1,24 @@
+﻿@model CMCS.Mvc.Models.Claim
+
+<h2>Review Claim</h2>
+
+<div class="card p-3">
+
+    <p><strong>Claim ID:</strong> @Model.ClaimId</p>
+    <p><strong>Lecturer ID:</strong> @Model.LecturerId</p>
+    <p><strong>Month:</strong> @Model.Month</p>
+    <p><strong>Hours Worked:</strong> @Model.HoursWorked</p>
+    <p><strong>Hourly Rate:</strong> @Model.HourlyRate</p>
+    <p><strong>Total Amount:</strong> @((decimal)Model.HoursWorked * Model.HourlyRate)</p>
+
+    <form asp-action="Approve" method="post">
+        <input type="hidden" name="id" value="@Model.ClaimId" />
+        <button type="submit" class="btn btn-success">Approve</button>
+    </form>
+
+    <form asp-action="Reject" method="post" class="mt-2">
+        <input type="hidden" name="id" value="@Model.ClaimId" />
+        <button type="submit" class="btn btn-danger">Reject</button>
+    </form>
+
+</div>

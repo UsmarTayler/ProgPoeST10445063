@@ -1,65 +1,98 @@
 @model CMCS.Mvc.Models.Claim
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-<h3>Submit Claim</h3>
-@if (TempData["error"] != null)
-{
-     <div class="alert alert-danger">@TempData["error"]</div>
+    ViewData["Title"] = "Submit Claim";
 }
 
-<form asp-action="Create" method="post" enctype="multipart/form-data" class="row g-3 mt-2">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<h2 class="mb-4">Submit Claim</h2>
 
-    <div class="col-md-6">
-        <label class="form-label">Lecturer</label>
-        <select asp-for="LecturerId" asp-items="ViewBag.Lecturers" class="form-select"></select>
-        <span asp-validation-for="LecturerId" class="text-danger"></span>
+<form asp-action="Create" enctype="multipart/form-data" method="post">
+    <div class="row">
+
+        <!-- Lecturer -->
+        <div class="col-md-6 mb-3">
+            <label asp-for="LecturerId"></label>
+            <select asp-for="LecturerId" class="form-select" asp-items="ViewBag.Lecturers">
+                <option value="">Select Lecturer</option>
+            </select>
+            <span asp-validation-for="LecturerId" class="text-danger"></span>
+        </div>
+
+        <!-- Month -->
+        <div class="col-md-6 mb-3">
+            <label asp-for="Month"></label>
+            <select asp-for="Month" class="form-select" asp-items="ViewBag.Months"></select>
+            <span asp-validation-for="Month" class="text-danger"></span>
+        </div>
+
+        <!-- Hours -->
+        <div class="col-md-6 mb-3">
+            <label asp-for="HoursWorked"></label>
+            <input asp-for="HoursWorked" id="HoursWorked" class="form-control" />
+            <span asp-validation-for="HoursWorked" class="text-danger"></span>
+        </div>
+
+        <!-- Rate -->
+        <div class="col-md-6 mb-3">
+            <label>Hourly Rate</label>
+            <input asp-for="HourlyRate" id="HourlyRate" class="form-control" readonly />
+            <small class="text-muted">(Auto-filled from lecturer profile)</small>
+            <span asp-validation-for="HourlyRate" class="text-danger"></span>
+        </div>
+
+        <!-- Total -->
+        <div class="col-md-6 mb-3">
+            <label>Total Amount</label>
+            <input id="TotalAmount" class="form-control" readonly />
+        </div>
+
+        <!-- Description -->
+        <div class="col-md-12 mb-3">
+            <label asp-for="Description"></label>
+            <textarea asp-for="Description" class="form-control"></textarea>
+        </div>
+
+        <!-- Uploads -->
+        <div class="col-md-6 mb-3">
+            <label>Upload Document 1</label>
+            <input type="file" name="upload1" class="form-control" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label>Upload Document 2</label>
+            <input type="file" name="upload2" class="form-control" />
+        </div>
+
     </div>
 
-
-    <div class="col-md-4">
-        <label class="form-label">Month</label>
-        <select asp-for="Month" class="form-select">
-            @foreach (var m in (List<string>)ViewBag.Months)
-            {
-                <option>@m</option>
-            }
-        </select>
-        <span asp-validation-for="Month" class="text-danger"></span>
-    </div>
-
-    <div class="col-md-4">
-        <label class="form-label">Hourly Rate (R)</label>
-        <input asp-for="HourlyRate" class="form-control" />
-        <span asp-validation-for="HourlyRate" class="text-danger"></span>
-    </div>
-
-    <div class="col-md-4">
-        <label class="form-label">Hours Worked</label>
-        <input asp-for="HoursWorked" class="form-control" />
-        <span asp-validation-for="HoursWorked" class="text-danger"></span>
-    </div>
-
-    <div class="col-12">
-        <label class="form-label">Description</label>
-        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
-    </div>
-
-    <div class="col-md-6">
-        <label class="form-label">Supporting Doc 1</label>
-        <input type="file" name="upload1" class="form-control" />
-    </div>
-    <div class="col-md-6">
-        <label class="form-label">Supporting Doc 2 (optional)</label>
-        <input type="file" name="upload2" class="form-control" />
-    </div>
-
-    <div class="col-12 d-flex justify-content-end">
-        <button class="btn btn-primary">Submit</button>
-    </div>
+    <button class="btn btn-primary mt-3">Submit Claim</button>
 </form>
 
 @section Scripts {
-<partial name="_ValidationScriptsPartial" />
- }
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function updateTotal() {
+            let hours = parseFloat(document.getElementById("HoursWorked").value) || 0;
+            let rate = parseFloat(document.getElementById("HourlyRate").value) || 0;
+
+            document.getElementById("TotalAmount").value = (hours * rate).toFixed(2);
+        }
+
+        document.getElementById("HoursWorked").addEventListener("input", updateTotal);
+        document.getElementById("HourlyRate").addEventListener("input", updateTotal);
+    </script>
+
+    <script>
+        document.getElementById("LecturerId").addEventListener("change", function () {
+            var lecturerId = this.value;
+            if (!lecturerId) return;
+
+            fetch('/Claims/GetRate?lecturerId=' + lecturerId)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("HourlyRate").value = data.rate;
+                    updateTotal();
+                });
+        });
+    </script>
+}
